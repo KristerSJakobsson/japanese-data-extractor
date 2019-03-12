@@ -1,0 +1,59 @@
+(?#
+A comprehensive regex that matches time of two common formats and returns them with three capture fields:
+time_string : The full string of the time, from start to end
+decorator : The decorator for the time, 午後 or 午前
+hour : The hour contained in the string, must be contained in order to be a match
+minute : The minutes contained in the string, empty if no match
+)
+(?P<time_string>
+    (?P<time_decorator>\L<prefix_hour_decorator>)?
+    (?:
+        (?#
+        Regex that matches the pattern xx:yy
+        \L<separator_hour_minute> ; Ex ：:
+        )
+        (?P<time_hour>(?#時間：【1・01】から【24】まで。前に数値がないこと。)
+            (?<!\d)
+            (?:[2２][0-4０-４]|[0０1１][0-9０-９])
+        )
+        \L<separator_hour_minute>
+        (?P<time_minute>(?#分：【1・01】から【60】まで。後に数値がないこと。)
+            (?:[0-5０-５][0-9０-９]|[6６][0０])
+            (?!\d)
+        )
+   |
+        (?#
+        Regex that matches the pattern xx時yy分/xx時半
+        \L<suffix_hour> ; Ex 時
+        \L<suffix_minute> ; Ex 分
+        \L<suffix_hour_like> ; Ex 時限、時間
+        \L<special_value_half_hour> ; Ex 半
+        Kanji numbers
+        \L<kanji_0>
+        \L<kanji_0to1>
+        \L<kanji_0to4>
+        \L<kanji_0to5>
+        \L<kanji_0to9>
+        \L<kanji_0to10>
+        \L<kanji_1to4>
+        \L<kanji_1to5>
+        \L<kanji_1to9>
+        \L<kanji_2>
+        \L<kanji_6>
+        \L<kanji_10>
+        )
+        (?P<time_hour>(?#数値・漢字数の時間。その前に数値・漢字数が書いていないことその後に「時限」「時間」等が書いていないこと)
+            (?<!\L<kanji_0to10>|\d)
+            (?:\L<kanji_2>\L<kanji_10>\L<kanji_1to4>?|(?:[2２]|\L<kanji_2>)(?:[0-4０-４]|\L<kanji_0to4>)|\L<kanji_10>\L<kanji_1to9>?|(?:[0０1１]|\L<kanji_0to1>)?(?:\d|\L<kanji_0to9>))
+            (?!\L<suffix_hour_like>)
+        )
+        (?:\L<suffix_hour>)
+        (?P<time_minute>(?#特別単語。（半）)
+            \L<special_value_half_hour>
+        |(?#数値・漢字数の分。その後に「分」が書いていること)
+           (?:\L<kanji_1to5>?\L<kanji_10>\L<kanji_1to9>?|(?:[6６]|\L<kanji_6>)(?:[0０]|\L<kanji_0>|\L<kanji_10>)|(?:[0-5０-５]|\L<kanji_0to5>)?(?:\d|\L<kanji_0to10>))
+           (?=\L<suffix_minute>)
+        )?
+    )
+    \L<suffix_minute>?(?#「分」を「time_string」に含めること)
+)

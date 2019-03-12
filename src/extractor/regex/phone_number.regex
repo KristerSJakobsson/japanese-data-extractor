@@ -1,0 +1,108 @@
+(?#
+A comprehensive regex that matches japanese phone numbers, both land-line and mobile phone, and returns the value:
+phone_string : The full string with the phone number, from start to end
+
+With referenced lists from python:
+\L<seperator_left_parenthesis>
+\L<seperator_right_parenthesis>
+\L<seperator_space>
+\L<seperator_phone_number>
+)
+(?P<phone_number_string>
+(?P<phone_number_value>(?# Note that value and string are same, but treated differently in the code!)
+    (?<!\d)(?# 携帯電話番号の前に数値がないこと)
+    \L<seperator_left_parenthesis>?
+    (?:(?#国番号か０)
+        [+＋][8８][1１]|[0０]
+    )
+    (?:(?#携帯電話/IP電話１１桁、上記の国番号か0を抜く)
+        (?:
+            \d[0０]
+            \L<seperator_right_parenthesis>?
+            \L<seperator_space>*
+            \L<seperator_phone_number>?
+            \L<seperator_left_parenthesis>?
+            \L<seperator_space>*
+            \d{4}
+            \L<seperator_space>*
+            \L<seperator_phone_number>?
+            \L<seperator_right_parenthesis>?
+            \L<seperator_space>*
+            \d{4}
+        )
+    |(?#固定電話１０桁)
+        (?:(?#パターンが多い、基本的２桁から６桁までは任意の位置に「-」が入ること)
+            (?:
+                [1-9１-９]{1}
+                \L<seperator_space>*
+                \L<seperator_right_parenthesis>?
+                \L<seperator_phone_number>?
+                \L<seperator_left_parenthesis>?
+                \L<seperator_space>*
+                [1-9１-９]
+                \d{3}
+            |
+                [1-9１-９]{2}
+                \L<seperator_space>*
+                \L<seperator_right_parenthesis>?
+                \L<seperator_phone_number>?
+                \L<seperator_left_parenthesis>?
+                \L<seperator_space>*
+                \d{3}
+            |
+                [1-9１-９]{2}
+                \d{1}
+                \L<seperator_space>*
+                \L<seperator_right_parenthesis>?
+                \L<seperator_phone_number>?
+                [(]?
+                \L<seperator_space>*
+                \d{2}
+            |
+                [1-9１-９]{2}
+                \d{2}
+                \L<seperator_space>*
+                \L<seperator_right_parenthesis>?
+                \L<seperator_phone_number>?
+                \L<seperator_left_parenthesis>?
+                \L<seperator_space>*
+                \d{1}
+            )
+            \L<seperator_space>*
+            \L<seperator_right_parenthesis>?
+            \L<seperator_phone_number>?
+            \L<seperator_left_parenthesis>?
+            \L<seperator_space>*
+            \d{4}
+        |
+            \d\d[0０]
+            \L<seperator_space>*
+            \L<seperator_right_parenthesis>?
+            \L<seperator_phone_number>?
+            \L<seperator_left_parenthesis>?
+            \L<seperator_space>*?
+            \d{3}
+            \L<seperator_space>*
+            \L<seperator_right_parenthesis>?
+            \L<seperator_phone_number>?
+            \L<seperator_left_parenthesis>?
+            \L<seperator_space>*
+            \d{3}
+        |
+            [5５][0０]
+            \L<seperator_space>*
+            \L<seperator_right_parenthesis>?
+            \L<seperator_phone_number>?
+            \L<seperator_left_parenthesis>?
+            \L<seperator_space>*
+            \d{4}
+            \L<seperator_space>*
+            \L<seperator_right_parenthesis>?
+            \L<seperator_phone_number>?
+            \L<seperator_space>*
+            \d{4}
+        )
+    )
+    (?!\d)(?# 携帯電話番号の後に数値がないこと)
+)
+)

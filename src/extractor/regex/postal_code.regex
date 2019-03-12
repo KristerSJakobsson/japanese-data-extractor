@@ -1,0 +1,22 @@
+(?#
+A comprehensive regex that matches a postal code, either in traditional japanes letter style writing or moder numeric, and returns the value:
+postal_code_string : The full string with the postal code, including separator, from start to end
+
+Source: http://www.post.japanpost.jp/zipcode/zipmanual/p04.html
+
+With referenced lists from python:
+\L<kanji_0to9> Ex : 〇一二三
+\L<seperator_postal_code> Ex : -ー
+\L<seperator_space> : 空白（半全角）
+\L<prefix_postal_code> Ex : 〒 T
+)
+(?P<postal_code_string>
+    (?:\L<prefix_postal_code>\L<seperator_space>?)?(?# Optionally we can read the postal code mark, but not required!)
+    (?<postal_code_value>
+        (?# RetData case the code has been input with western numbers, most common case)
+        (?<!\d)(?:\d{3}\L<seperator_postal_code>?\d{4})(?!\d)
+    |
+        (?# RetData case the code has been input with japanese numbers, for example in letters etc.)
+        (?<!\L<kanji_0to9>)(?:\L<kanji_0to9>{3}の\L<kanji_0to9>{4})(?!\L<kanji_0to9>)
+    )
+)

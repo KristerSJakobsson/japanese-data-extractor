@@ -1,0 +1,42 @@
+(?#
+A comprehensive regex that matches age up to 120 years and returns the values:
+age_string : The full string of the age, from start to end
+age : The numerical age
+
+With referenced lists from python:
+\L<special_value_age_zero> : ゼロ歳の場合はカタカナの「ゼロ」が許容されること
+\L<suffix_age> ; Ex 歳、才
+Kanji numbers:
+\L<kanji_0>
+\L<kanji_0to1>
+\L<kanji_0to9>
+\L<kanji_0to100>
+\L<kanji_1>
+\L<kanji_1to9>
+\L<kanji_2>
+\L<kanji_2to9>
+\L<kanji_10>
+\L<kanji_100>
+)
+(?P<age_string>
+    (?P<age_value>(?#特別なケース：ゼロ歳)
+        \L<special_value_age_zero>
+    |(?#漢字数：【〇・零】から【一二〇・百二十】まで。その前に漢字数がないこと)
+        (?<!\L<kanji_0to100>)
+        (?:(?#少し複雑なので数行に分けた)
+            \L<kanji_0>
+        |
+            \L<kanji_1>(?:\L<kanji_2>\L<kanji_0>|\L<kanji_0to1>\L<kanji_0to9>?|\L<kanji_2to9>)?
+        |
+            \L<kanji_2to9>(?:\L<kanji_0to9>|\L<kanji_10>\L<kanji_1to9>?)?
+        |
+            \L<kanji_10>\L<kanji_1to9>?
+        |
+            \L<kanji_100>(?:\L<kanji_1to9>|\L<kanji_10>\L<kanji_1to9>?|\L<kanji_2>\L<kanji_10>)?
+        )
+    |(?#半全角数値：【０】から【120】まで。その前に数値がないこと。)
+        (?<!\d)
+        (?:[1１][0０1１][0-9０-９]|[1１][2２][0０]|[1-9１-９]\d|\d)
+    )
+    \L<suffix_age>
+)

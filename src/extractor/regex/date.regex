@@ -1,0 +1,125 @@
+(?#
+A comprehensive regex that matches dates of two common formats and returns them with three capture fields:
+date_string : The full string of the date, from start to end
+year : The year contained in the string, or empty if none
+month : The month contained in the string, or empty if none
+day : The day contained in the string, must be contained in order to be a match
+)
+(?:
+    (?#
+    This regular expression accepts dates with Japanese formatting.
+    ○〇年〇〇月○○日
+
+    With referenced lists from python:
+    \L<prefix_relative_year> ; Ex 去年|今年|昨年|来年|本年|再来年
+    \L<prefix_relative_month> ; Ex 去年|今年|昨年|来年|本年|再来年
+    \L<prefix_japanese_year_names> ; Ex 平成|昭和
+    \L<suffix_year> ; Ex 年
+    \L<suffix_month> ; Ex 月
+    \L<suffix_day> ; Ex 日
+    \L<suffix_day_like> ; Ex 日で始まり、日ではないケース、例えば【～日目】、【～日間】
+    \L<seperator_space> : 空白（半全角）
+    Kanji numbers:
+    \L<kanji_0to1>
+    \L<kanji_0to2>
+    \L<kanji_0to9>
+    \L<kanji_0to1000>
+    \L<kanji_1>
+    \L<kanji_1to2>
+    \L<kanji_1to9>
+    \L<kanji_2>
+    \L<kanji_2to9>
+    \L<kanji_3>
+    \L<kanji_10>
+    )
+    (?P<date_string>
+        (?P<date_year>(?#年：任意、単語もしくは日付)
+            (?#年として適切な単語の入力)
+            \L<prefix_relative_year>
+        |
+            (?:(?#年として適切な数値・漢字数の入力)
+                (?:(?#和暦)
+                    (?#数値もしくは漢字数：１桁から３桁までの数値でその前に【平成・昭和】などが記入されていること)
+                    (?:\L<prefix_japanese_year_names>)
+                    (?:\d|\L<kanji_0to1000>){1,3})
+            |
+                (?:(?#西暦)
+                    (?#数値：２桁か４桁の数値。その前に数値がないこと。)
+                    (?<!\d)
+                    (?:\d{4}|\d{2})
+                |
+                    (?#漢字数：１桁から６桁までの数値。その前に漢字数がないこと。)
+                    (?<!\L<kanji_0to1000>)
+                    \L<kanji_0to1000>{1,6}
+                )
+            )
+            (?=\L<suffix_year>)(?#数値・漢字数の場合はその後に「年」が書いていること)
+        )?
+        (?(date_year)\L<suffix_year>?\L<seperator_space>?)(?#「year」がキャッチされた場合、「年」を「date_string」に含めること)
+        (?P<date_month>(?#月：任意、単語もしくは日付)
+            (?(date_year)|(?<!\L<suffix_year>))(?#「year」がキャッチされなかった場合、前の文字は「年」ではないことを確認)
+            (?:
+                (?#月として適切な単語の入力)
+                \L<prefix_relative_month>
+            |
+                (?:
+                        (?#数値：１桁か２桁、【01・1】から【12】まで。その前に数値がないこと。)
+                        (?<!\d)
+                        (?:[0０]?[1-9１-９]|[1１][0-2０-２])
+                    |
+                        (?#漢字数：１桁、２桁、【一】から【十二・一二】まで。その前に漢字数がないこと。)
+                        (?<!\L<kanji_0to1000>)
+                        (?:\L<kanji_1>\L<kanji_0to2>?|\L<kanji_2to9>|\L<kanji_10>\L<kanji_1to2>?)
+                )
+                (?=\L<suffix_month>)(?#数値・漢字数の場合はその後に「月」が書いていること)
+            )
+        )?
+        (?(date_month)\L<suffix_month>?\L<seperator_space>?)(?#「month」がキャッチされた場合、「月」を「date_string」に含めること)
+        (?P<date_day>(?#日：必須、日付のみ)
+            (?(date_month)|(?<!\L<suffix_month>))(?#「month」がキャッチされなかった場合、前の文字は「月」ではないことを確認)
+            (?:
+                    (?#数値：１桁か２桁、【01・1】から【31】まで。その前に数値がないこと。)
+                    (?<!\d)
+                    (?:[0０]?[1-9１-９]|[12１２]\d|[3３][0０]|[3３][1１])
+                |
+                    (?#漢字数：１桁、２桁、【一】から【三十一・三一】まで。その前に漢字数がないこと。)
+                    (?<!\L<kanji_0to1000>)
+                    (?:\L<kanji_1to9>|\L<kanji_2>?\L<kanji_10>\L<kanji_1to9>?|\L<kanji_1to2>\L<kanji_0to9>|\L<kanji_3>(?:\L<kanji_0to1>|\L<kanji_10>\L<kanji_1>?))
+            )
+            (?=\L<suffix_day>)(?#数値・漢字数の後に「日」が書いていること)
+            (?!\L<suffix_day_like>)(?#数値・漢字数の後に「日間」・「日目」が書いていないこと)
+        )
+        \L<suffix_day>?(?#「day」がキャッチされた場合（必須なのでIf文不要）、「日」を「date_string」に含めること)
+    )
+|
+    (?#
+    This regular expression accepts dates with [-:/] etc.
+    2017-01-01
+    2019/02/23
+
+    With referenced lists from python:
+    \L<prefix_relative_year> ; Ex 去年|今年|昨年|来年|本年|再来年
+    \L<separator_year_month_day> ; Ex ：:/
+    )
+    (?P<date_string>
+        (?P<date_year>(?#年：単語もしくは数値)
+            \L<prefix_relative_year>
+        |
+            (?<!\d)
+            (?:\d{2}|\d{4})
+            (?!\d)
+        )?
+        (?(date_year)\L<separator_year_month_day>?)(?#「year」が読み込まれた場合は「-/」を「date_string」に含めること)
+        (?P<date_month>(?#月：数値：１桁か２桁、【01・1】から【12】まで。その前後に数値がないこと。)
+            (?<!\d)
+            (?:[1１][0-2０-２]|[0０]?[1-9１-９])
+            (?!\d)
+        )
+        \L<separator_year_month_day>
+        (?P<date_day>(?#日：数値：１桁か２桁、【01・1】から【31】まで。その前後に数値がないこと。)
+            (?<!\d)
+            (?:[1１2２]\d|[3３][0０]|[3３][1１]|[0０]?[1-9１-９])
+            (?!\d)
+        )
+    )
+)

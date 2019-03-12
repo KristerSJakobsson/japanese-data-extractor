@@ -1,0 +1,37 @@
+(?#
+A comprehensive regex that matches currency amount, with both either or mixed Japanese/Western styles, and returns the values:
+currency_amount_string : The full string with the currency amount, including prefix and suffix, from start to end
+currency_amount : The currency amount value
+
+With referenced lists from python:
+\L<prefix_currency_amount> Ex : ￥、JPY
+\L<suffix_currency_amount> Ex : 日本円、円、YEN
+\L<japanese_number_any> Ex : 一壱百億
+\L<seperator_currency_amount>　Ex : 、 ,
+\L<japanese_number_power_of_ten> Ex : 十拾百千万
+)
+(?P<currency_amount_string>
+    \L<prefix_currency_amount>?(?#「currency_amount_string」に含まれるようにする)
+    (?P<currency_amount_value>
+    (?<=\L<prefix_currency_amount>)(?#通貨の前に「￥、JPY」などがある場合)
+        (?#通貨は数値のみ、数値と【,、】、数値と漢字数（万など）、漢字数のみ様々なパターンがあること)
+        (?#注意【上】：下記の部分は「注意【下】」と同じです！)
+        (?:
+            (?:[1-9１-９]\d{0,2}(?:\d*|(?:\L<seperator_currency_amount>[0-9０-９]{3})*|\L<japanese_number_any>+)\L<japanese_number_power_of_ten>*)+
+        |
+            \L<japanese_number_any>+
+        )
+        (?#ここからは【下】と違います)
+    |
+    (?!\L<prefix_currency_amount>)(?#通貨の前に「￥、JPY」などがない場合)
+        (?#注意【下】：下記の部分は「注意【上】」と同じです！)
+        (?:
+            (?:[1-9１-９]\d{0,2}(?:\d*|(?:\L<seperator_currency_amount>[0-9０-９]{3})*|\L<japanese_number_any>+)\L<japanese_number_power_of_ten>*)+
+        |
+            \L<japanese_number_any>+
+        )
+        (?#ここからは【上】と違います)
+        (?=\L<suffix_currency_amount>)(?#通貨の後に「円、日本円」など)
+    )
+    \L<suffix_currency_amount>?(?#「currency_amount_string」に含まれるようにする)
+)
