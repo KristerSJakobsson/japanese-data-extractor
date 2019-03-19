@@ -7,15 +7,15 @@ import jsonpickle
 from pandas import DataFrame, read_csv
 
 
-def is_directory(path: str):
+def is_directory(path: str) -> bool:
     return isdir(path)
 
 
-def is_file(path: str):
+def is_file(path: str) -> bool:
     return isfile(path)
 
 
-def create_directory_if_not_exists(path: str):
+def create_directory_if_not_exists(path: str) -> None:
     if not exists(path):
         makedirs(path)
     elif is_file(path):
@@ -82,3 +82,4 @@ def store_figure(figure: Any, classifier_name: str, image_folder: str, filename:
     image_folder = join(target_folder, image_folder)
     create_directory_if_not_exists(image_folder)
     figure.savefig(join(image_folder, filename))
+

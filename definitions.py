@@ -8,6 +8,4 @@ OUTPUT_PATH = join(ROOT_DIR, "output")
 CLASSIFIERS_PATH = join(OUTPUT_PATH, "classifiers")
 TEST_PATH = join(ROOT_DIR, "tests")
 TEST_DATA_PATH = join(TEST_PATH, "test_data")
-
-OXFORD_IMAGE_DATA_FOLDER_NAME = "image_data_oxford"
-STANFORD_IMAGE_DATA_FOLDER_NAME = "image_data_stanford"
+EXCEPTIONS_PATH = join(SOURCE_DIR, "exceptions")
