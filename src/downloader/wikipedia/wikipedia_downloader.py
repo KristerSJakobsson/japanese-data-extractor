@@ -2,13 +2,14 @@ from typing import List
 from wikipediaapi import Wikipedia, WikipediaPage
 
 from src.exceptions.downloader_exceptions import PageNotFoundError
+from src.downloader.models.DownloadedData import DownloadedData
 
 wiki_extractor = Wikipedia(language='ja')
 
 
-def get_wikipedia_data_for_output(search_page_names: List[str]) -> List[str]:
+def get_wikipedia_data_for_output(search_page_names: List[str]) -> List[DownloadedData]:
     pages = download_wikipedia_pages(search_page_names=search_page_names)
-    return [page.title + "\n" + page.text for page in pages]
+    return [DownloadedData.from_wikipedia_page(page) for page in pages]
 
 
 def download_wikipedia_pages(search_page_names: List[str]) -> List[WikipediaPage]:

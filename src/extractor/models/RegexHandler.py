@@ -1,11 +1,13 @@
+from typing import Tuple, List, Pattern, TypeVar, Optional
+
+ConverterMapping = Tuple[str, object]  # Maps how an item should be converted
+ExtractedData = TypeVar('T', int, str)
+
 
 class RegexHandler:
     """
     This object contains precompiled regexes, search results and other related data.
     """
-
-    # This contains an list of tuples of Regex group names and corresponding transformation functions
-    ConverterMapping = Tuple[str, object]  # Maps how an item should be converted
 
     def __init__(self, compiled_regex: Pattern, regex_identifiers: List[ConverterMapping]) -> None:
         if compiled_regex is None or regex_identifiers is None:
@@ -19,7 +21,7 @@ class RegexHandler:
         self._result_stored_list = []
         self._loaded_string = target_string
 
-    def search_string(self, result_in_order: int) -> None:
+    def search_string(self, result_in_order: int) -> Optional[str]:
         """
         Ensures that all results up to the input order is stored in the object.
         :param result_in_order
@@ -138,4 +140,3 @@ class TagHandler:
     def regex_identifier(self) -> List[str]:
         """Returns a list of identifiers for this regex."""
         return self.compiled_regex.regex_identifier
-
