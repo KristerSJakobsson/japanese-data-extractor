@@ -5,7 +5,8 @@ import unittest
 from typing import Dict, List, Callable, Any
 
 from src.utils.number_convertion_utils import parse_single_char_digit_as_number, \
-    string_number_below_ten_thousand_to_value, western_style_kanji_to_value
+    string_number_below_ten_thousand_to_value, western_style_kanji_to_value, clean_mixed_number_to_value, \
+    dirty_mixed_number_to_value
 
 HALF2FULL = dict((i, i + 0xFEE0) for i in range(0x21, 0x7F))
 HALF2FULL[0x20] = 0x3000
@@ -97,6 +98,9 @@ class TestNumberConvertionUtils(unittest.TestCase):
             "〇": 0,
             "零": 0,
             "一": 1,
+            "弐": 2,
+            "二百": 200,
+            "六十": 60,
             "九千二百三十四": 9234,
             "９千２百３十４": 9234,
             "九千九百九十九": 9999,
@@ -125,7 +129,8 @@ class TestNumberConvertionUtils(unittest.TestCase):
         correct_western_style_kanji_numbers = {
             "一九九九": 1999,
             "九九九九九九": 999999,
-            "一二三四五六": 123456
+            "一二三四五六": 123456,
+            "弐〇〇〇": 2000
         }
 
         incorrect_western_style_kanji_numbers = [
@@ -145,4 +150,31 @@ class TestNumberConvertionUtils(unittest.TestCase):
         self.verify_each_value_throws_in_list(
             invalid_numbers=incorrect_western_style_kanji_numbers,
             verify_function=western_style_kanji_to_value
+        )
+
+    def test_clean_mixed_number_to_value(self):
+        correct_clean_mixed_numbers_and_values = {
+            #"一九九九": 1999,
+            #"九九九九九九": 999999,
+            #"一二三四五六": 123456,
+            #"弐〇〇〇": 2000,
+            #"1999": 1999,
+            #"９９９９９９": 999999,
+            #"123456": 123456,
+            "二百万": 2000000
+        }
+
+        incorrect_clean_mixed_numbers = [
+            "",
+            "ゼロ",
+            "９九"
+        ]
+
+        self.verify_each_value_equals_expectation_in_dictionary(
+            value_and_expectation=correct_clean_mixed_numbers_and_values,
+            verify_function=clean_mixed_number_to_value
+        )
+        self.verify_each_value_throws_in_list(
+            invalid_numbers=incorrect_clean_mixed_numbers,
+            verify_function=clean_mixed_number_to_value
         )

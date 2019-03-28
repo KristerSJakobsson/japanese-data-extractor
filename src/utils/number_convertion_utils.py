@@ -83,7 +83,7 @@ japanese_container_dict = {
 
 
 # Note that this function does not take decimal numbers for now!
-def mixed_to_value(mixed: str) -> int:
+def dirty_mixed_number_to_value(mixed: str) -> int:
     """
     Converts any dirty number represented with kanji or mixed kanji/numerals to a digit. Dirty mean it may
     contain other characters such as 【,】 etc. These will be ignored in conversion.
@@ -96,39 +96,32 @@ def mixed_to_value(mixed: str) -> int:
 
     # First, remove anything that is not Kanji numbers or numerals and store cleaned string
     clean_string = ""
-    has_kanji_numbers = False
 
     for char in mixed:
-        if char in japanese_container_dict["all_numbers"]:
+        if char in japanese_container_dict["all_numbers"] or char.isnumeric():
             clean_string = clean_string + char
-            has_kanji_numbers = True
-        elif char.isnumeric():
-            clean_string = clean_string + char
-    if has_kanji_numbers is False:
-        # Easy!
-        return int(clean_string)
-    else:
-        return big_number_to_value(clean_string)
+
+    return clean_mixed_number_to_value(clean_string)
 
 
-def big_number_to_value(kanji_string: str) -> int:
+def clean_mixed_number_to_value(number_string: str) -> int:
     """
     Converts any clean number represented with kanji or mixed kanji/numerals to a digit.
     Here, clean mean it does not contain any other characters such as "," etc.
-    :param kanji_string: Any clean digit/kanji string, potentially mixed, such as "２億５万五百二十七"
+    :param number_string: Any clean digit/kanji string, potentially mixed, such as "２億５万五百二十七"
     :return: The corresponding numerical value
     """
     # Two cases: Either the kanji_string are western style 二〇〇〇 or Japanese style 二千,
     # we can distinguish these cases using a simple regex that checks if the japanese "powers of ten" are used"
 
-    is_traditional = regex.search(r"\L<japanese_powers_of_ten>", kanji_string,
+    is_traditional = regex.search(r"\L<japanese_powers_of_ten>", number_string,
                                   japanese_powers_of_ten=japanese_container_dict["powers_of_ten"])
     if is_traditional:
         # Japanese style representation of number! We convert by simply multiplying all characters by
         # their corresponding value!
         # Split by multipliers
         final_number = 0
-        split = regex.split(r"(\L<japanese_multipliers>)", kanji_string,
+        split = regex.split(r"(\L<japanese_multipliers>)", number_string,
                             japanese_multipliers=japanese_container_dict["numbers_multipliers"])
         # Since we capture the splits, the value will be split like: "三百五十万二百"　→ ["三百五十", "万", "二百", ""]
         for iterator in range(0, len(split), 2):
@@ -145,9 +138,10 @@ def big_number_to_value(kanji_string: str) -> int:
 
         return final_number
     else:
-        # No match! Meaning this is a western style representation of a number! We simply convert
-        # character by character to western numbers and then parse as integer!
-        return western_style_kanji_to_value(kanji_string)
+        try:
+            return int(number_string)
+        except ValueError:
+            return western_style_kanji_to_value(number_string)
 
 
 def western_style_kanji_to_value(kanji_string: str) -> int:
@@ -160,9 +154,9 @@ def western_style_kanji_to_value(kanji_string: str) -> int:
     try:
         final_number = ""
         for char in kanji_string:
-            (value, type) = parse_single_char_kanji_as_number(kanji=char)
-            if type in [NumberType.ZERO, NumberType.REGULAR]:
-                final_number = final_number + str(value)
+            (number_value, number_type) = parse_single_char_kanji_as_number(kanji=char)
+            if number_type in [NumberType.ZERO, NumberType.REGULAR]:
+                final_number = final_number + str(number_value)
             else:
                 raise ValueError
 
@@ -192,13 +186,14 @@ def string_number_below_ten_thousand_to_value(numeric_string: str):
             current_numerical_value, current_numerical_type = parse_single_char_digit_as_number(char)
 
             if current_numerical_type == NumberType.MULTIPLE:
-                raise ValueError("Number unexpectedly contained a multiplier above ten thousand")
+                raise ValueError(f"Number unexpectedly contained a multiplier above ten thousand: {numeric_string}")
 
             if current_numerical_type == NumberType.ZERO and len(numeric_string) > 1:
-                raise ValueError("Number unexpectedly contained a zero")
+                raise ValueError(f"Number unexpectedly contained a zero: {numeric_string}")
 
             if current_numerical_type == NumberType.REGULAR and previous_numerical_type == NumberType.REGULAR:
-                raise ValueError("Number contained two or more consecutive japanese numbers that were not multipliers")
+                raise ValueError(
+                    f"Number contained two or more consecutive japanese numbers that were not multipliers {numeric_string}")
 
             if index == len(numeric_string) - 1:
                 if current_numerical_type == NumberType.REGULAR:
@@ -207,6 +202,7 @@ def string_number_below_ten_thousand_to_value(numeric_string: str):
                 elif current_numerical_type == NumberType.UNIT:
                     # Save the remainder for the final value, for example 二百五十 → 0
                     rest_value = 0
+                    final_numerical_value = final_numerical_value + current_numerical_value * multiplier_value
             else:
                 if current_numerical_type == NumberType.REGULAR:
                     multiplier_value = current_numerical_value
@@ -218,11 +214,11 @@ def string_number_below_ten_thousand_to_value(numeric_string: str):
 
     if final_numerical_value < 0:
         raise ValueError(
-            "By design, this function should never convert a negative number")
+            f"By design, this function should never convert a negative number: {numeric_string}")
 
     if final_numerical_value >= 10000:
         raise ValueError(
-            "By design, this function should never convert a number equal to or above ten thousand")
+            f"By design, this function should never convert a number equal to or above ten thousand: {numeric_string}")
 
     return final_numerical_value
 
@@ -243,7 +239,8 @@ def parse_single_char_digit_as_number(digit: Any) -> Tuple[int, NumberType]:
             else:
                 return input_number, NumberType.REGULAR
         else:
-            raise ValueError("The numeric value could not be interpreted as either a kanji number or normal number")
+            raise ValueError(
+                f"The numeric value could not be interpreted as either a kanji number or normal number: {digit}")
 
 
 def parse_single_char_kanji_as_number(kanji: Any) -> Tuple[int, NumberType]:
@@ -256,4 +253,4 @@ def parse_single_char_kanji_as_number(kanji: Any) -> Tuple[int, NumberType]:
         input_number = japanese_number_dict[kanji]
         return input_number.value, input_number.number_type
     else:
-        raise ValueError("The numeric value could not be interpreted as a kanji number")
+        raise ValueError(f"The numeric value could not be interpreted as a kanji number: {kanji}")
