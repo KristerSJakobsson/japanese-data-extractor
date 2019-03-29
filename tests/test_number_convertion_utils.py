@@ -5,8 +5,8 @@ import unittest
 from typing import Dict, List, Callable, Any
 
 from src.utils.number_convertion_utils import parse_single_char_digit_as_number, \
-    string_number_below_ten_thousand_to_value, western_style_kanji_to_value, clean_mixed_number_to_value, \
-    dirty_mixed_number_to_value
+    string_number_below_ten_thousand_to_value, traditional_style_kanji_to_value, western_style_kanji_to_value, \
+    clean_mixed_number_to_value, dirty_mixed_number_to_value
 
 HALF2FULL = dict((i, i + 0xFEE0) for i in range(0x21, 0x7F))
 HALF2FULL[0x20] = 0x3000
@@ -63,7 +63,8 @@ class TestNumberConvertionUtils(unittest.TestCase):
 
         incorrect_half_width_numbers = [
             "10000",
-            "-1"
+            "-1",
+            "文字列"
         ]
 
         self.verify_each_value_equals_expectation_in_dictionary(
@@ -83,7 +84,8 @@ class TestNumberConvertionUtils(unittest.TestCase):
 
         incorrect_full_width_numbers = [
             "１００００",
-            "-１"
+            "-１",
+            "文字列"
         ]
 
         self.verify_each_value_equals_expectation_in_dictionary(
@@ -99,6 +101,7 @@ class TestNumberConvertionUtils(unittest.TestCase):
             "零": 0,
             "一": 1,
             "弐": 2,
+            "十": 10,
             "二百": 200,
             "六十": 60,
             "九千二百三十四": 9234,
@@ -114,7 +117,8 @@ class TestNumberConvertionUtils(unittest.TestCase):
             "９九",
             "二百万",
             "百〇一",
-            "零一"
+            "零一",
+            "文字列"
         ]
 
         self.verify_each_value_equals_expectation_in_dictionary(
@@ -124,9 +128,54 @@ class TestNumberConvertionUtils(unittest.TestCase):
             invalid_numbers=incorrect_kanji_numbers,
             verify_function=string_number_below_ten_thousand_to_value)
 
+    def test_traditional_style_kanji_to_value(self):
+
+        correct_traditional_style_kanji_numbers = {
+            "〇": 0,
+            "零": 0,
+            "一": 1,
+            "弐": 2,
+            "十": 10,
+            "二百": 200,
+            "六十": 60,
+            "二百万": 2000000,
+            "九千二百三十四": 9234,
+            "９千２百３十４": 9234,
+            "九千九百九十九": 9999,
+            "９千９百９十９": 9999
+        }
+
+        incorrect_traditional_style_kanji_numbers = [
+            "一九九九",
+            "九九九九九九",
+            "一二三四五六",
+            "弐〇〇〇",
+            "1999"
+            "９９９９９９",
+            "123456",
+            "",
+            "ゼロ",
+            "９九",
+            "文字列"
+        ]
+
+        self.verify_each_value_equals_expectation_in_dictionary(
+            value_and_expectation=correct_traditional_style_kanji_numbers,
+            verify_function=traditional_style_kanji_to_value
+        )
+        self.verify_each_value_throws_in_list(
+            invalid_numbers=incorrect_traditional_style_kanji_numbers,
+            verify_function=traditional_style_kanji_to_value
+        )
+
     def test_western_style_kanji_to_value(self):
 
         correct_western_style_kanji_numbers = {
+            "〇": 0,
+            "零": 0,
+            "一": 1,
+            "弐": 2,
+            "一〇": 10,
             "一九九九": 1999,
             "九九九九九九": 999999,
             "一二三四五六": 123456,
@@ -134,13 +183,15 @@ class TestNumberConvertionUtils(unittest.TestCase):
         }
 
         incorrect_western_style_kanji_numbers = [
+            "十",
             "1999",
             "９９９９９９",
             "123456",
             "",
             "ゼロ",
             "９九",
-            "二百万"
+            "二百万",
+            "文字列"
         ]
 
         self.verify_each_value_equals_expectation_in_dictionary(
@@ -154,20 +205,23 @@ class TestNumberConvertionUtils(unittest.TestCase):
 
     def test_clean_mixed_number_to_value(self):
         correct_clean_mixed_numbers_and_values = {
-            #"一九九九": 1999,
-            #"九九九九九九": 999999,
-            #"一二三四五六": 123456,
-            #"弐〇〇〇": 2000,
-            #"1999": 1999,
-            #"９９９９９９": 999999,
-            #"123456": 123456,
-            "二百万": 2000000
+            "一九九九": 1999,
+            "九九九九九九": 999999,
+            "一二三四五六": 123456,
+            "弐〇〇〇": 2000,
+            "1999": 1999,
+            "９９９９９９": 999999,
+            "123456": 123456,
+            "二百万": 2000000,
+            "200万": 2000000,
+            "47176百万": 47176000000
         }
 
         incorrect_clean_mixed_numbers = [
             "",
             "ゼロ",
-            "９九"
+            "９九",
+            "文字列"
         ]
 
         self.verify_each_value_equals_expectation_in_dictionary(
@@ -177,4 +231,32 @@ class TestNumberConvertionUtils(unittest.TestCase):
         self.verify_each_value_throws_in_list(
             invalid_numbers=incorrect_clean_mixed_numbers,
             verify_function=clean_mixed_number_to_value
+        )
+
+    def test_dirty_mixed_number_to_value(self):
+        correct_dirty_mixed_numbers_and_values = {
+            "文字列一九九九文字列": 1999,
+            "九九九、九九九": 999999,
+            "一二三ゴミ四五六": 123456,
+            "1999年": 1999,
+            "９９９、９９９": 999999,
+            "123,456": 123456,
+            "JPY47,176百万": 47176000000,
+            "２,000億５万五百二十七": 200000050527
+        }
+
+        incorrect_dirty_mixed_numbers = [
+            "",
+            "ゼロ",
+            "９九",
+            "文字列"
+        ]
+
+        self.verify_each_value_equals_expectation_in_dictionary(
+            value_and_expectation=correct_dirty_mixed_numbers_and_values,
+            verify_function=dirty_mixed_number_to_value
+        )
+        self.verify_each_value_throws_in_list(
+            invalid_numbers=incorrect_dirty_mixed_numbers,
+            verify_function=dirty_mixed_number_to_value
         )

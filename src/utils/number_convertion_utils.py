@@ -24,6 +24,8 @@ class KanjiNumber(object):
         self.number_type = number_type
 
 
+ExtractNumberAndNonnumbersRegex = regex.compile(r"^(?P<numbers>\d*)(?P<nonnumbers>\w*)$")
+
 # Summarize all kanji and relevant information
 japanese_number_dict = {
     "〇": KanjiNumber("〇", 0, NumberType.ZERO),
@@ -86,7 +88,7 @@ japanese_container_dict = {
 def dirty_mixed_number_to_value(mixed: str) -> int:
     """
     Converts any dirty number represented with kanji or mixed kanji/numerals to a digit. Dirty mean it may
-    contain other characters such as 【,】 etc. These will be ignored in conversion.
+    contain other characters such as comma or other non-numerics. These will be ignored in conversion.
     :param mixed: Any dirty digit/kanji string, potentially mixed, such as "２,000億５万五百二十七" or 2,000,000
     :return: The corresponding numerical value
     """
@@ -111,37 +113,86 @@ def clean_mixed_number_to_value(number_string: str) -> int:
     :param number_string: Any clean digit/kanji string, potentially mixed, such as "２億５万五百二十七"
     :return: The corresponding numerical value
     """
-    # Two cases: Either the kanji_string are western style 二〇〇〇 or Japanese style 二千,
+    # Two cases: Either the kanji_string are western style 二〇〇〇/2000/２０００ or Japanese style 二千/53453百万,
     # we can distinguish these cases using a simple regex that checks if the japanese "powers of ten" are used"
 
     is_traditional = regex.search(r"\L<japanese_powers_of_ten>", number_string,
                                   japanese_powers_of_ten=japanese_container_dict["powers_of_ten"])
     if is_traditional:
-        # Japanese style representation of number! We convert by simply multiplying all characters by
-        # their corresponding value!
-        # Split by multipliers
-        final_number = 0
-        split = regex.split(r"(\L<japanese_multipliers>)", number_string,
-                            japanese_multipliers=japanese_container_dict["numbers_multipliers"])
-        # Since we capture the splits, the value will be split like: "三百五十万二百"　→ ["三百五十", "万", "二百", ""]
-        for iterator in range(0, len(split), 2):
-            if split[iterator] is "":
-                # If only an multiple is entered, we will have an blank space at the beginning, ignore this!
-                continue
-            if len(split) is iterator + 1 or split[iterator + 1] is "":
-                # Final group between multipliers
-                final_number = final_number + string_number_below_ten_thousand_to_value(split[iterator])
-            else:
-                # Take the value before each multiplier and multiply by the multiplier
-                multiplier = japanese_number_dict[split[iterator + 1]].value
-                final_number = final_number + string_number_below_ten_thousand_to_value(split[iterator]) * multiplier
-
-        return final_number
+        return traditional_style_kanji_to_value(number_string)
     else:
         try:
             return int(number_string)
         except ValueError:
             return western_style_kanji_to_value(number_string)
+
+
+def traditional_style_kanji_to_value(kanji_string: str) -> int:
+    """
+    Converts any clean traditional style kanji number to corresponding digit
+    Here, clean mean it does not contain any other characters such as "," etc.
+    :param kanji_string: Any traditional style kanji string, such as "二千"
+    :return: The corresponding numerical value
+    """
+
+    if kanji_string.isdigit():
+        raise ValueError(f"Number is a valid number and is thus not a kanji string: {kanji_string}")
+
+    final_number = 0
+    split_kanji_by_number_multipliers = regex.split(r"(\L<japanese_multipliers>)",
+                                                    kanji_string,
+                                                    japanese_multipliers=japanese_container_dict[
+                                                        "numbers_multipliers"])
+    # Remove blanks from list
+    while ("" in split_kanji_by_number_multipliers):
+        split_kanji_by_number_multipliers.remove("")
+
+    if len(split_kanji_by_number_multipliers) is 0:
+        raise ValueError(f"Number contains no parsable information: {kanji_string}")
+
+    # Since we capture the splits, the value will be split like: "三百五十万二百"　→ ["三百五十", "万", "二百", ""]
+    index = 0
+
+    # First we assume that the number might have a western pre-component, like 200万, and thus the base is 1
+    base_value = 1
+    while index < len(split_kanji_by_number_multipliers):
+        selected_value = split_kanji_by_number_multipliers[index]
+        for character in selected_value:
+            if not character.isdigit() and character not in japanese_container_dict["all_numbers"]:
+                raise ValueError(f"Number could not be parsed due to containing \"{character}\": {kanji_string}")
+
+        if selected_value in japanese_container_dict["numbers_multipliers"]:
+            # Take the value before each multiplier and multiply by the multiplier
+            multiplier_value = japanese_number_dict[selected_value].value
+            final_number = final_number + multiplier_value * base_value
+            # After the first value, the base will always be 0 unless changed
+            base_value = 0
+        elif selected_value.isdigit():
+            base_value = int(selected_value)
+        else:
+            number, nonnumber = split_number_and_kanji(selected_value)
+            value_of_nonnumber = string_number_below_ten_thousand_to_value(nonnumber)
+            if number > value_of_nonnumber:
+                # Ex: 47176百
+                base_value = number * value_of_nonnumber
+            else:
+                # Ex: ９千２百３十４
+                base_value = string_number_below_ten_thousand_to_value(selected_value)
+
+        index = index + 1
+
+    final_number = final_number + base_value
+
+    return final_number
+
+
+def split_number_and_kanji(kanji_number: str) -> Tuple[int, str]:
+    matches = ExtractNumberAndNonnumbersRegex.search(kanji_number)
+    number = matches.group("numbers")
+    nonnumber = matches.group("nonnumbers")
+    if not number and not nonnumber:
+        raise ValueError(f"Number could not be parsed: {kanji_number}")
+    return int(number) if number.isdigit() else 1, nonnumber
 
 
 def western_style_kanji_to_value(kanji_string: str) -> int:
