@@ -59,7 +59,7 @@ def load_dataframe(path: str, filename: str) -> DataFrame:
 def load_regex(regex_file_name: str) -> str:
     file_path = prepare_read_get_full_path(REGEX_PATH, regex_file_name)
     with open(file=file_path, mode='r', encoding='utf-8-sig') as file:
-        return file.read()
+        return file.read().replace("\n", "").replace(" ", "")
 
 
 def store_serializable_object(serializable_object: Any, path: str, filename: str):
