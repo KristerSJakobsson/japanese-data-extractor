@@ -24,7 +24,7 @@ class KanjiNumber(object):
         self.number_type = number_type
 
 
-ExtractNumberAndNonnumbersRegex = regex.compile(r"^(?P<numbers>\d*)(?P<nonnumbers>\w*)$")
+ExtractNumberAndNonNumbersRegex = regex.compile(r"^(?P<numbers>\d*)(?P<nonnumbers>\w*)$")
 
 # Summarize all kanji and relevant information
 japanese_number_dict = {
@@ -187,7 +187,7 @@ def traditional_style_kanji_to_value(kanji_string: str) -> int:
 
 
 def split_number_and_kanji(kanji_number: str) -> Tuple[int, str]:
-    matches = ExtractNumberAndNonnumbersRegex.search(kanji_number)
+    matches = ExtractNumberAndNonNumbersRegex.search(kanji_number)
     number = matches.group("numbers")
     nonnumber = matches.group("nonnumbers")
     if not number and not nonnumber:

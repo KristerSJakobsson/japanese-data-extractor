@@ -4,7 +4,7 @@ import unittest
 
 from typing import Dict, List, Callable, Any
 
-from src.utils.number_convertion_utils import parse_single_char_digit_as_number, \
+from src.utils.number_conversion_utils import parse_single_char_digit_as_number, \
     string_number_below_ten_thousand_to_value, traditional_style_kanji_to_value, western_style_kanji_to_value, \
     clean_mixed_number_to_value, dirty_mixed_number_to_value
 
