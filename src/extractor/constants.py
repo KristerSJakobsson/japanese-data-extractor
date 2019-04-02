@@ -26,7 +26,7 @@ special_values["age_zero"] = ["ゼロ"]  # ゼロ歳
 # Date
 prefixes["date_relative_month"] = ["前月", "今月", "本月", "来月", "再来月"]
 prefixes["date_relative_year"] = ["去年", "今年", "来年", "本年", "再来年"]
-prefixes["date_japanese_year"] = ["平成", "昭和"]
+prefixes["date_japanese_year"] = ["大正", "平成", "昭和", "令和"]
 suffixes["date_japanese_year"] = ["年"]
 suffixes["date_japanese_month"] = ["月"]
 suffixes["date_japanese_day"] = ["日"]   # These are suffixes that if found will be considered a date

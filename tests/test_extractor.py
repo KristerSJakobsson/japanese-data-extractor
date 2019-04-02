@@ -8,9 +8,9 @@ from os.path import join
 
 from definitions import TEST_DATA_PATH
 from src.downloader.models.DownloadedData import DownloadedData
-from src.extractor.postal_code_extractor import extract_postal_code
+from src.extractor.postal_code_extractor import extract_all_postal_codes, extract_all_dates
 from src.extractor.models.PostalCode import PostalCode
-
+from src.extractor.models.Year import Year, YearType
 
 class TestExtract(unittest.TestCase):
 
@@ -34,7 +34,7 @@ class TestExtract(unittest.TestCase):
 
     def test_extract_single_postal_code_western_numbers(self):
         string_containing_postal_code = "今の郵便コードが「〒012‐2321」です。"
-        extracted_data = extract_postal_code(target_string=string_containing_postal_code)
+        extracted_data = extract_all_postal_codes(target_string=string_containing_postal_code)
 
         expected_extraction = [((9, 18),
                                 {
@@ -47,7 +47,7 @@ class TestExtract(unittest.TestCase):
 
     def test_extract_single_postal_code_kanji_numbers(self):
         string_containing_postal_code = "今の郵便コードが一〇一の二四一二です。"
-        extracted_data = extract_postal_code(target_string=string_containing_postal_code)
+        extracted_data = extract_all_postal_codes(target_string=string_containing_postal_code)
 
         expected_extraction = [((8, 16),
                                 {
@@ -61,7 +61,7 @@ class TestExtract(unittest.TestCase):
     def test_extract_multiple_postal_codes_mixed_numbers(self):
         string_containing_postal_codes = """"今の郵便コードが二二二の一二一二です。
         前の所はT３３３ー３２３２だったし、実家は〒444-1212だった。"""
-        extracted_data = extract_postal_code(target_string=string_containing_postal_codes)
+        extracted_data = extract_all_postal_codes(target_string=string_containing_postal_codes)
 
         expected_extraction = [((9, 17),
                                 {
@@ -77,6 +77,36 @@ class TestExtract(unittest.TestCase):
                                 {
                                     "postal_code_string": "〒444-1212",
                                     "postal_code_value": PostalCode("4441212")
+                                })]
+
+        self.assertEqual(extracted_data, expected_extraction,
+                         f"Result {extracted_data} is not the same as expectation {expected_extraction}")
+
+    def test_extract_single_date_western_numbers(self):
+        string_containing_date = "今日は2019-04-03です。"
+        extracted_data = extract_all_dates(target_string=string_containing_date)
+
+        expected_extraction = [((3, 13),
+                                {
+                                    "date_string": "2019-04-03",
+                                    "date_year": Year(2019, YearType.ABSOLUTE),
+                                    "date_month": 4,
+                                    "date_day": 3
+                                })]
+
+        self.assertEqual(extracted_data, expected_extraction,
+                         f"Result {extracted_data} is not the same as expectation {expected_extraction}")
+
+    def test_extract_single_date_kanji_numbers(self):
+        string_containing_date = "今日は平成三一年四月三日です。"
+        extracted_data = extract_all_dates(target_string=string_containing_date)
+
+        expected_extraction = [((3, 12),
+                                {
+                                    "date_string": "平成三一年四月三日",
+                                    "date_year": Year(2019, YearType.ABSOLUTE),
+                                    "date_month": 4,
+                                    "date_day": 3
                                 })]
 
         self.assertEqual(extracted_data, expected_extraction,

@@ -1,5 +1,5 @@
 from typing import Tuple, List, Pattern, Dict, Callable
-from src.extractor.models.ExtractedData import ExtractionList
+from src.extractor.models.ExtractedData import ExtractedList
 
 
 class RegexHandler:
@@ -11,7 +11,7 @@ class RegexHandler:
     """
 
     def __init__(self, compiled_regex: Pattern,
-                 regex_identifiers: Dict[str, Callable[[Tuple[str, str]], ExtractionList]]) -> None:
+                 regex_identifiers: Dict[str, Callable[[Tuple[str, str]], ExtractedList]]) -> None:
         if compiled_regex is None or regex_identifiers is None:
             raise ValueError("Tried to save an empty regex or identifier list to a RegexHandler!")
         self._regex_identifiers = regex_identifiers  # A list of identifiers in the regex
@@ -19,7 +19,7 @@ class RegexHandler:
         self._result_stored_list = []  # List of match objects
         self._loaded_string = ""
 
-    def search_string(self, target_string: str) -> ExtractionList:
+    def search_string(self, target_string: str) -> ExtractedList:
         """
         Ensures that all results up to the input order is stored in the object.
         :param target_string String to extract data from
