@@ -5,8 +5,8 @@ from src.extractor.models.ExtractedData import ExtractedList
 from src.utils.io_utils import load_regex
 
 from src.extractor.constants import separators, prefixes, suffixes
-from src.utils.number_conversion_utils import japanese_container_dict, dirty_mixed_number_to_value, japanese_number_dict
-from src.utils.conversion_utils import parse_postal_code, parse_year
+from src.utils.number_conversion_utils import japanese_container_dict
+from src.utils.conversion_utils import parse_postal_code, parse_year, parse_month, parse_day
 
 # POSTAL CODE
 
@@ -60,8 +60,8 @@ DATE_REGEX = regex.compile(
 DATE_REGEX_IDENTIFIERS = {
     "date_string": lambda raw_value: raw_value,
     "date_year": lambda raw_value: parse_year(year=raw_value),
-    "date_month": lambda raw_value: dirty_mixed_number_to_value(mixed=raw_value),
-    "date_day": lambda raw_value: dirty_mixed_number_to_value(mixed=raw_value)
+    "date_month": lambda raw_value: parse_month(month=raw_value),
+    "date_day": lambda raw_value: parse_day(day=raw_value)
 }
 
 

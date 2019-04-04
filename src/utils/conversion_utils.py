@@ -3,7 +3,7 @@ from collections import namedtuple
 
 from src.utils.number_conversion_utils import western_style_kanji_to_value
 from src.extractor.models.PostalCode import PostalCode
-from src.extractor.models.Year import Year, YearType
+from src.extractor.models.DateValue import Year, Month, Day, DateValueType
 
 from src.extractor.constants import prefixes
 from src.utils.number_conversion_utils import dirty_mixed_number_to_value
@@ -99,7 +99,7 @@ def parse_japanese_year_value(japanese_year: str) -> int:
     raise ValueError(f"Could not parse the input as a Japanese year: {japanese_year}")
 
 
-def parse_year(year: str) -> Optional[Year]:
+def parse_year(year: Optional[str]) -> Optional[Year]:
     """
     Function used to contain year (relative or fixed) to a number
     :param year: Either a year or a relative year
@@ -110,8 +110,68 @@ def parse_year(year: str) -> Optional[Year]:
         return None
     for japanese_year_prefix in prefixes["date_japanese_year"]:
         if year.startswith(japanese_year_prefix):
-            return Year(parse_japanese_year_value(year), YearType.ABSOLUTE)
+            return Year(parse_japanese_year_value(year), DateValueType.ABSOLUTE)
     for japanese_relative_year in prefixes["date_relative_year"]:
         if year == japanese_relative_year:
-            return Year(parse_relative_year_value(year), YearType.RELATIVE)
-    return Year(dirty_mixed_number_to_value(year), YearType.ABSOLUTE)
+            return Year(parse_relative_year_value(year), DateValueType.RELATIVE)
+    return Year(dirty_mixed_number_to_value(year), DateValueType.ABSOLUTE)
+
+
+def parse_relative_month_value(relative_month: str) -> int:
+    """
+    Parses a relative month value such as "前月"
+    :param relative_month: The month to parse
+    :return: An integer representing the relative value of the year, for example -1
+    """
+    if relative_month == "前月":
+        return -1
+    if relative_month == "今月":
+        return 0
+    if relative_month == "来月":
+        return 1
+    raise ValueError(f"Could not parse the input as a relative month: {relative_month}")
+
+
+def parse_month(month: Optional[str]) -> Optional[Month]:
+    """
+    Function used to contain month (relative or fixed) to a number
+    :param month: Either a month or a relative month
+    :return: Either a fixed month or a relative month
+    """
+
+    if not month:
+        return None
+    for japanese_relative_month in prefixes["date_relative_month"]:
+        if month == japanese_relative_month:
+            return Month(parse_relative_month_value(month), DateValueType.RELATIVE)
+    return Month(dirty_mixed_number_to_value(month), DateValueType.ABSOLUTE)
+
+
+def parse_relative_day_value(relative_day: str) -> int:
+    """
+    Parses a relative day value such as "昨日"
+    :param relative_day: The day to parse
+    :return: An integer representing the relative value of the day, for example -1
+    """
+    if relative_day == "前月":
+        return -1
+    if relative_day == "今月":
+        return 0
+    if relative_day == "来月":
+        return 1
+    raise ValueError(f"Could not parse the input as a relative month: {relative_day}")
+
+
+def parse_day(day: Optional[str]) -> Optional[Day]:
+    """
+    Function used to contain month (relative or fixed) to a number
+    :param day: Either a day or a relative day
+    :return: Either a fixed day or a relative day
+    """
+
+    if not day:
+        return None
+    for japanese_relative_month in prefixes["date_relative_month"]:
+        if day == japanese_relative_month:
+            return Day(parse_relative_day_value(day), DateValueType.RELATIVE)
+    return Day(dirty_mixed_number_to_value(day), DateValueType.ABSOLUTE)

@@ -10,7 +10,8 @@ from definitions import TEST_DATA_PATH
 from src.downloader.models.DownloadedData import DownloadedData
 from src.extractor.postal_code_extractor import extract_all_postal_codes, extract_all_dates
 from src.extractor.models.PostalCode import PostalCode
-from src.extractor.models.Year import Year, YearType
+from src.extractor.models.DateValue import Year, Month, Day, DateValueType
+
 
 class TestExtract(unittest.TestCase):
 
@@ -89,7 +90,7 @@ class TestExtract(unittest.TestCase):
         expected_extraction = [((3, 13),
                                 {
                                     "date_string": "2019-04-03",
-                                    "date_year": Year(2019, YearType.ABSOLUTE),
+                                    "date_year": Year(2019, DateValueType.ABSOLUTE),
                                     "date_month": 4,
                                     "date_day": 3
                                 })]
@@ -104,10 +105,54 @@ class TestExtract(unittest.TestCase):
         expected_extraction = [((3, 12),
                                 {
                                     "date_string": "平成三一年四月三日",
-                                    "date_year": Year(2019, YearType.ABSOLUTE),
+                                    "date_year": Year(2019, DateValueType.ABSOLUTE),
                                     "date_month": 4,
                                     "date_day": 3
                                 })]
 
         self.assertEqual(extracted_data, expected_extraction,
                          f"Result {extracted_data} is not the same as expectation {expected_extraction}")
+
+    def test_extract_single_date_relative_years_kanji(self):
+        year_values = {
+            "去年": -1,
+            "今年": 0,
+            "本年": 0,
+            "来年": 1,
+            "再来年": 2
+        }
+        for year, relative_value in year_values.items():
+            string_containing_date = f"{year}十二月三十一日ではありません。"
+            extracted_data = extract_all_dates(target_string=string_containing_date)
+
+            expected_extraction = [((0, 7 + len(year)),
+                                    {
+                                        "date_string": f"{year}十二月三十一日",
+                                        "date_year": Year(relative_value, DateValueType.RELATIVE),
+                                        "date_month": Month(12, DateValueType.ABSOLUTE),
+                                        "date_day": Day(31, DateValueType.ABSOLUTE)
+                                    })]
+
+            self.assertEqual(extracted_data, expected_extraction,
+                             f"Result {extracted_data} is not the same as expectation {expected_extraction}")
+
+    def test_extract_single_date_relative_month_kanji(self):
+        month_values = {
+            -1: "前月",
+            0: "今月",
+            1: "来月"
+        }
+        for relative_value, month in month_values.items():
+            string_containing_date = f"{month}1日ではありません。"
+            extracted_data = extract_all_dates(target_string=string_containing_date)
+
+            expected_extraction = [((0, 4 + len(month)),
+                                    {
+                                        "date_string": f"{month}1日",
+                                        "date_year": None,
+                                        "date_month": Month(relative_value, DateValueType.RELATIVE),
+                                        "date_day": Day(31, DateValueType.ABSOLUTE)
+                                    })]
+
+            self.assertEqual(extracted_data, expected_extraction,
+                             f"Result {extracted_data} is not the same as expectation {expected_extraction}")
