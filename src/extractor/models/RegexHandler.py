@@ -19,7 +19,7 @@ class RegexHandler:
         self._result_stored_list = []  # List of match objects
         self._loaded_string = ""
 
-    def search_string(self, target_string: str) -> ExtractedList:
+    def search_string(self, target_string: str, post_process: Callable = None) -> ExtractedList:
         """
         Ensures that all results up to the input order is stored in the object.
         :param target_string String to extract data from
@@ -32,4 +32,8 @@ class RegexHandler:
             for key, value in capture_groups.items():
                 capture_data[key] = self._regex_identifiers[key](value)
             extracted_data.append((regex_span, capture_data))
+
+        if post_process:
+            extracted_data = [post_process(data) for data in extracted_data]
+
         return extracted_data

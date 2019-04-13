@@ -216,7 +216,7 @@ def western_style_kanji_to_value(kanji_string: str) -> int:
         raise ValueError(f"Failed to parse the string as a western style number: {kanji_string}")
 
 
-def string_number_below_ten_thousand_to_value(numeric_string: str):
+def string_number_below_ten_thousand_to_value(numeric_string: str) -> int:
     """
     Converts any clean digit (half-width, full-width) and kanji up to 万 (exclusive) to corresponding digit
     Here, clean mean it does not contain any other characters such as "," etc.

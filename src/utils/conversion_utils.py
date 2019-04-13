@@ -1,7 +1,7 @@
 from typing import Optional
 from collections import namedtuple
 
-from src.utils.number_conversion_utils import western_style_kanji_to_value
+from src.utils.number_conversion_utils import japanese_container_dict, parse_single_char_kanji_as_number
 from src.extractor.models.PostalCode import PostalCode
 from src.extractor.models.DateValue import Year, Month, Day, DateValueType
 
@@ -14,7 +14,6 @@ HALF2FULL[0x20] = 0x3000
 FULL2HALF = dict((i + 0xFEE0, i) for i in range(0x21, 0x7F))
 FULL2HALF[0x3000] = 0x20
 
-POSTAL_CODE_JAPANESE_SEPARATORS = ["の", "ノ", "之", "ﾉ"]
 
 Era = namedtuple('Era', ['gregorian_calendar_offset', 'length_in_years'])
 JAPANESE_ERAS = {
@@ -50,18 +49,13 @@ def parse_postal_code(postal_code: str) -> PostalCode:
     :return: Correctly formatted postal code nnn-nnnn
     """
     converted_code = ""
-    for japanese_separator in POSTAL_CODE_JAPANESE_SEPARATORS:
-        if japanese_separator in postal_code:
-            # Assume it's a japanese number
-            pieces = postal_code.split(japanese_separator)
-            converted_code = f"{western_style_kanji_to_value(pieces[0])}{western_style_kanji_to_value(pieces[1])}"
-            break
-    else:
-        # Assume it's not a japanese number, contains only numbers and seperator
-        for char in postal_code:
-            if char.isnumeric():
-                # Conversion turns full-width characters to half-width
-                converted_code = converted_code + full_width_string_to_half_width(char)
+
+    # Assume it's not a japanese number, contains only numbers and seperator
+    for char in postal_code:
+        if char.isdigit():
+            converted_code = converted_code + full_width_string_to_half_width(char)
+        elif char in japanese_container_dict["0to9"]:
+            converted_code = converted_code + str(parse_single_char_kanji_as_number(char)[0])
 
     return PostalCode.from_string(postal_code=converted_code)
 

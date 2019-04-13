@@ -9,6 +9,7 @@ With referenced lists from python:
 \L<seperator_postal_code> Ex : -ー
 \L<seperator_space> : 空白（半全角）
 \L<prefix_postal_code> Ex : 〒 T
+\L<separator_postal_code_kanji> Ex: -ーの
 )
 (?P<postal_code_string>
     (?:\L<prefix_postal_code>\L<seperator_space>?)?(?# Optionally we can read the postal code mark, but not required!)
@@ -17,6 +18,6 @@ With referenced lists from python:
         (?<!\d)(?:\d{3}\L<seperator_postal_code>?\d{4})(?!\d)
     |
         (?# RetData case the code has been input with japanese numbers, for example in letters etc.)
-        (?<!\L<kanji_0to9>)(?:\L<kanji_0to9>{3}の\L<kanji_0to9>{4})(?!\L<kanji_0to9>)
+        (?<!\L<kanji_0to9>)(?:\L<kanji_0to9>{3}\L<separator_postal_code_kanji>?\L<kanji_0to9>{4})(?!\L<kanji_0to9>)
     )
 )

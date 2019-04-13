@@ -10,8 +10,8 @@ class DateValueType(Enum):
 
 class DateValue(ABC):
     """
-   This model represents a year, either relative or absolute.
-   """
+    This model represents a date value, either relative or absolute.
+    """
 
     def __init__(self, value: int, type: DateValueType):
         self.value = value

@@ -6,7 +6,7 @@ special_values = dict()
 
 ### Values for the above types are defined per below
 ## General
-separators["dash"] = ["-", "‐", "ー", "―", "－"]
+separators["dash"] = ["-", "ー", "―", "‐", "━", "─"]  # -(通常), 長音(815b), ダッシュ(815c), ハイフン(815d), マイナス(817c), 罫線　太(84aa), 罫線　細(849f)
 separators["blank"] = [" ", "　"]
 separators["slash"] = ["/"]
 separators["left_parenthesis"] = ["(", "（"]
@@ -40,6 +40,6 @@ suffixes["time_hour_like"] = ["時限", "時間"]
 special_values["time_half_hour"] = ["半"]
 
 # Postal Code
-prefixes["postal_code"] = ["T", "〒", "🏣", "〶"]
-
-
+prefixes["postal_code"] = ["T", "〒", "🏣", "〶", "郵便番号"]
+separators["postal_code_numbers"] = separators["dash"] + separators["blank"]
+separators["postal_code_kanji"] = separators["postal_code_numbers"] + ["の", "ノ", "之", "ﾉ"]
