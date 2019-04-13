@@ -1,14 +1,11 @@
 import regex
 
-from src.extractor.models.RegexHandler import RegexHandler
-from src.extractor.models.ExtractedData import ExtractedList
-from src.utils.io_utils import load_regex
-
 from src.extractor.constants import separators, prefixes
-from src.utils.number_conversion_utils import japanese_container_dict
+from src.extractor.models.ExtractedData import ExtractedList
+from src.extractor.models.RegexHandler import RegexHandler
 from src.utils.conversion_utils import parse_postal_code
-
-# POSTAL CODE
+from src.utils.io_utils import load_regex
+from src.utils.number_conversion_utils import japanese_container_dict
 
 POSTAL_CODE_REGEX_STRING = load_regex(regex_file_name="postal_code.regexp")
 POSTAL_CODE_REGEX = regex.compile(

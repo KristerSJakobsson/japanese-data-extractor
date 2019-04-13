@@ -66,8 +66,7 @@ class TestNumberConvertionUtils(unittest.TestCase):
             "",
             "文字列",
             "12345678",
-            "123456",
-            "二〇五ー一二四五"
+            "123456"
         ]
 
         self.verify_each_value_equals_expectation_in_dictionary(

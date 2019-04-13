@@ -1,12 +1,12 @@
-from typing import Optional
 from collections import namedtuple
+from typing import Optional
 
-from src.utils.number_conversion_utils import japanese_container_dict, parse_single_char_kanji_as_number
-from src.extractor.models.PostalCode import PostalCode
+from src.extractor.constants import prefixes, special_values
 from src.extractor.models.DateValue import Year, Month, Day, DateValueType
-
-from src.extractor.constants import prefixes
-from src.utils.number_conversion_utils import dirty_mixed_number_to_value
+from src.extractor.models.PostalCode import PostalCode
+from src.extractor.models.TimeDecorator import TimeDecorator
+from src.utils.number_conversion_utils import dirty_mixed_number_to_value, clean_mixed_number_to_value
+from src.utils.number_conversion_utils import japanese_container_dict, parse_single_char_kanji_as_number
 
 HALF2FULL = dict((i, i + 0xFEE0) for i in range(0x21, 0x7F))
 HALF2FULL[0x20] = 0x3000
@@ -40,6 +40,41 @@ def half_width_string_to_full_width(half_width_string: str) -> str:
     :return: Corresponding full-width string
     """
     return half_width_string.translate(HALF2FULL)
+
+
+def parse_time_decorator(decorator_string: str) -> Optional[TimeDecorator]:
+    """
+    Coverts decorator value to the corresponding enum value.
+    :return: An enum representation AM and PM input
+    """
+    if decorator_string == "":
+        return None
+    elif decorator_string == "午後":
+        return TimeDecorator.PM
+    elif decorator_string == "午前":
+        return TimeDecorator.AM
+    else:
+        raise ValueError(f"The decorator could not be parsen: {decorator_string}")
+
+
+def parse_time_hour(hour_string: str) -> int:
+    """
+    Coverts and input hour value to the corresponding int.
+    :return: A numerical representation fo the input minues
+    """
+    return clean_mixed_number_to_value(hour_string)
+
+
+def parse_time_minutes(minutes_string: str) -> int:
+    """
+    Converts an input minute value to the corresponding int.
+    :return: A numerical representation of the input minutes.
+    """
+    if minutes_string in special_values["time_half_hour"]:
+        # Special case for 半
+        return 30
+    else:
+        return clean_mixed_number_to_value(minutes_string)
 
 
 def parse_postal_code(postal_code: str) -> PostalCode:
