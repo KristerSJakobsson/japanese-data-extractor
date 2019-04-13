@@ -14,9 +14,9 @@ class PostalCode:
 
     def __init__(self, postal_code: str):
         self.validate_postal_code(postal_code)
-        self._store_postal_code(postal_code)
+        self.__store_postal_code(postal_code)
 
-    def _store_postal_code(self, postal_code: str):
+    def __store_postal_code(self, postal_code: str):
         self.prefecture_id = int(postal_code[0:2])
         self.city_id = int(postal_code[2])
         self.neighborhood_id = int(postal_code[3:5])

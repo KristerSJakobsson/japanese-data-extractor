@@ -1,5 +1,6 @@
-from typing import Optional
 from datetime import date
+from typing import Optional
+
 from dateutil.relativedelta import relativedelta
 
 from .DateValue import Year, Month, Day
@@ -22,9 +23,21 @@ class ComplexDate:
         equal = self.year == other.year and self.month == other.month and self.day == other.day
         return equal
 
-    def to_date(self, relative_to: Optional[date] = date.today()) -> date:
+    def is_relative(self):
+        if self.day and self.day.is_relative():
+            return True
 
-        if self.day is not None:
+        if self.month and self.month.is_relative():
+            return True
+
+        if self.year and self.year.is_relative():
+            return True
+
+        return False
+
+    def to_dateutil_date(self, relative_to: Optional[date] = date.today()) -> date:
+
+        if self.day:
             if self.day.is_relative():
                 delta = relativedelta(days=self.day.value)
                 return relative_to + delta
@@ -33,7 +46,7 @@ class ComplexDate:
         else:
             raise ValueError(f"Not possible to parse date: {self}")
 
-        if self.month is not None:
+        if self.month:
             if self.month.is_relative():
                 delta = relativedelta(months=self.month.value)
                 relative_date_without_day = relative_to + delta
@@ -43,7 +56,7 @@ class ComplexDate:
         else:
             raise ValueError(f"Not possible to parse date: {self}")
 
-        if self.year is not None:
+        if self.year:
             if self.year.is_relative():
                 delta = relativedelta(years=self.year.value)
                 relative_date_without_month_and_day = relative_to + delta

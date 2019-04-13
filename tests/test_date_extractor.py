@@ -1,10 +1,10 @@
-# Tests /src/execution/analyse
+# Tests /src/extractor/date_extractor
 
 import unittest
 
-from src.extractor.models.DateValue import Year, Month, Day, DateValueType
-from src.extractor.models.ComplexDate import ComplexDate
 from src.extractor.date_extractor import extract_all_dates
+from src.extractor.models.ComplexDate import ComplexDate
+from src.extractor.models.DateValue import Year, Month, Day, DateValueType
 
 
 class TestExtract(unittest.TestCase):

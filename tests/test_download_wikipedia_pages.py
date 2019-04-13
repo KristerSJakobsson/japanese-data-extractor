@@ -1,12 +1,13 @@
-# Tests /src/execution/analyse
+# Tests /src/downloader/wikipedia/wikipedia_downloader
 
 import unittest
-import jsonpickle
 from os.path import join
 
-from src.utils.io_utils import is_file
-from src.downloader.wikipedia.wikipedia_downloader import get_wikipedia_data_for_output
+import jsonpickle
+
 from definitions import TEST_DATA_PATH
+from src.downloader.wikipedia.wikipedia_downloader import get_wikipedia_data_for_output
+from src.utils.io_utils import is_file
 
 
 class TestDownloadWikipediaPages(unittest.TestCase):

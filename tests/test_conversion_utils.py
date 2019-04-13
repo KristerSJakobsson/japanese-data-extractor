@@ -1,12 +1,11 @@
-# Tests /src/execution/analyse
+# Tests /src/utils/conversion_utils
 
 import unittest
-
 from typing import Dict, List, Callable, Any
 
+from src.extractor.models.PostalCode import PostalCode
 from src.utils.conversion_utils import full_width_string_to_half_width, half_width_string_to_full_width, \
     parse_postal_code
-from src.extractor.models.PostalCode import PostalCode
 
 
 class TestNumberConvertionUtils(unittest.TestCase):

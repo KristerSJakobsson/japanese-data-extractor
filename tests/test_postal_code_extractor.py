@@ -1,4 +1,4 @@
-# Tests /src/execution/analyse
+# Tests /src/extractor/postal_code_extractor
 
 import unittest
 
