@@ -1,16 +1,15 @@
-import regex
-
 from typing import Tuple, Optional
 
-from src.extractor.models.RegexHandler import RegexHandler
-from src.extractor.models.ExtractedData import ExtractedList, ExtractedDataPosition, ExtractedData
-from src.extractor.models.DateValue import Year, Month, Day
-from src.extractor.models.ComplexDate import ComplexDate
-from src.utils.io_utils import load_regex
+import regex
 
 from src.extractor.constants import separators, prefixes, suffixes
-from src.utils.number_conversion_utils import japanese_container_dict
+from src.extractor.models.ComplexDate import ComplexDate
+from src.extractor.models.DateValue import Year, Month, Day
+from src.extractor.models.ExtractedData import ExtractedList, ExtractedDataPosition, ExtractedData
+from src.extractor.models.RegexHandler import RegexHandler
 from src.utils.conversion_utils import parse_year, parse_month, parse_day
+from src.utils.io_utils import load_regex
+from src.utils.number_conversion_utils import japanese_container_dict
 
 DATE_REGEX_STRING = load_regex(regex_file_name="date.regexp")
 DATE_REGEX = regex.compile(
@@ -39,9 +38,9 @@ DATE_REGEX = regex.compile(
 
 DATE_REGEX_IDENTIFIERS = {
     "date_string": lambda raw_value: raw_value,
-    "date_year": lambda raw_value: parse_year(year=raw_value),
-    "date_month": lambda raw_value: parse_month(month=raw_value),
-    "date_day": lambda raw_value: parse_day(day=raw_value)
+    "date_year": parse_year,
+    "date_month": parse_month,
+    "date_day": parse_day
 }
 
 

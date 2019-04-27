@@ -1,6 +1,8 @@
-import regex
 from enum import Enum
+from typing import NamedTuple
 from typing import Tuple, Any
+
+import regex
 
 
 class NumberType(Enum):
@@ -13,54 +15,52 @@ class NumberType(Enum):
     ZERO = 3
 
 
-class KanjiNumber(object):
+class CustomNumber(NamedTuple):
     """
-    Container class for Kanji numbers
+    Container tuple for Kanji numbers
     """
-
-    def __init__(self, character: str, value: int, number_type: NumberType):
-        self.character = character
-        self.value = value
-        self.number_type = number_type
+    character: str
+    value: int
+    type: NumberType
 
 
 ExtractNumberAndNonNumbersRegex = regex.compile(r"^(?P<numbers>\d*)(?P<nonnumbers>\w*)$")
 
 # Summarize all kanji and relevant information
 japanese_number_dict = {
-    "〇": KanjiNumber("〇", 0, NumberType.ZERO),
-    "零": KanjiNumber("零", 0, NumberType.ZERO),
-    "一": KanjiNumber("一", 1, NumberType.REGULAR),
-    "二": KanjiNumber("二", 2, NumberType.REGULAR),
-    "三": KanjiNumber("三", 3, NumberType.REGULAR),
-    "四": KanjiNumber("四", 4, NumberType.REGULAR),
-    "五": KanjiNumber("五", 5, NumberType.REGULAR),
-    "六": KanjiNumber("六", 6, NumberType.REGULAR),
-    "七": KanjiNumber("七", 7, NumberType.REGULAR),
-    "八": KanjiNumber("八", 8, NumberType.REGULAR),
-    "九": KanjiNumber("九", 9, NumberType.REGULAR),
-    "十": KanjiNumber("十", 10, NumberType.UNIT),
-    "百": KanjiNumber("百", 100, NumberType.UNIT),
-    "千": KanjiNumber("千", 1000, NumberType.UNIT),
-    "万": KanjiNumber("万", 10000, NumberType.MULTIPLE),
-    "億": KanjiNumber("億", 100000000, NumberType.MULTIPLE),
-    "兆": KanjiNumber("兆", 1000000000000, NumberType.MULTIPLE),
-    "京": KanjiNumber("京", 10000000000000000, NumberType.MULTIPLE),
-    "壱": KanjiNumber("壱", 1, NumberType.REGULAR),
-    "弐": KanjiNumber("弐", 2, NumberType.REGULAR),
-    "参": KanjiNumber("参", 3, NumberType.REGULAR),
-    "拾": KanjiNumber("拾", 10, NumberType.UNIT),
-    "萬": KanjiNumber("萬", 10000, NumberType.MULTIPLE)
+    "〇": CustomNumber("〇", 0, NumberType.ZERO),
+    "零": CustomNumber("零", 0, NumberType.ZERO),
+    "一": CustomNumber("一", 1, NumberType.REGULAR),
+    "二": CustomNumber("二", 2, NumberType.REGULAR),
+    "三": CustomNumber("三", 3, NumberType.REGULAR),
+    "四": CustomNumber("四", 4, NumberType.REGULAR),
+    "五": CustomNumber("五", 5, NumberType.REGULAR),
+    "六": CustomNumber("六", 6, NumberType.REGULAR),
+    "七": CustomNumber("七", 7, NumberType.REGULAR),
+    "八": CustomNumber("八", 8, NumberType.REGULAR),
+    "九": CustomNumber("九", 9, NumberType.REGULAR),
+    "十": CustomNumber("十", 10, NumberType.UNIT),
+    "百": CustomNumber("百", 100, NumberType.UNIT),
+    "千": CustomNumber("千", 1000, NumberType.UNIT),
+    "万": CustomNumber("万", 10000, NumberType.MULTIPLE),
+    "億": CustomNumber("億", 100000000, NumberType.MULTIPLE),
+    "兆": CustomNumber("兆", 1000000000000, NumberType.MULTIPLE),
+    "京": CustomNumber("京", 10000000000000000, NumberType.MULTIPLE),
+    "壱": CustomNumber("壱", 1, NumberType.REGULAR),
+    "弐": CustomNumber("弐", 2, NumberType.REGULAR),
+    "参": CustomNumber("参", 3, NumberType.REGULAR),
+    "拾": CustomNumber("拾", 10, NumberType.UNIT),
+    "萬": CustomNumber("萬", 10000, NumberType.MULTIPLE)
 }
 
 # Note: Currently the dictionary only contains numbers that are acutally used!
 japanese_container_dict = {
     "all_numbers": list(japanese_number_dict.keys()),
     "powers_of_ten": [x.character for x in
-                      filter((lambda x: x.number_type == NumberType.UNIT or x.number_type == NumberType.MULTIPLE),
+                      filter((lambda x: x.type == NumberType.UNIT or x.type == NumberType.MULTIPLE),
                              japanese_number_dict.values())],
     "numbers_multipliers": [x.character for x in
-                            filter((lambda x: x.number_type == NumberType.MULTIPLE), japanese_number_dict.values())],
+                            filter((lambda x: x.type == NumberType.MULTIPLE), japanese_number_dict.values())],
     "0": [x.character for x in filter((lambda x: x.value == 0), japanese_number_dict.values())],
     "0to1": [x.character for x in filter((lambda x: 0 <= x.value <= 1), japanese_number_dict.values())],
     "0to2": [x.character for x in filter((lambda x: 0 <= x.value <= 2), japanese_number_dict.values())],
@@ -205,9 +205,9 @@ def western_style_kanji_to_value(kanji_string: str) -> int:
     try:
         final_number = ""
         for char in kanji_string:
-            (number_value, number_type) = parse_single_char_kanji_as_number(kanji=char)
-            if number_type in [NumberType.ZERO, NumberType.REGULAR]:
-                final_number = final_number + str(number_value)
+            number = parse_single_char_kanji_as_number(kanji=char)
+            if number.type in [NumberType.ZERO, NumberType.REGULAR]:
+                final_number = final_number + str(number.value)
             else:
                 raise ValueError
 
@@ -234,33 +234,33 @@ def string_number_below_ten_thousand_to_value(numeric_string: str) -> int:
         final_numerical_value = 0
         previous_numerical_type = None
         for index, char in enumerate(numeric_string):
-            current_numerical_value, current_numerical_type = parse_single_char_digit_as_number(char)
+            current_number = parse_single_char_digit_as_number(char)
 
-            if current_numerical_type == NumberType.MULTIPLE:
+            if current_number.type == NumberType.MULTIPLE:
                 raise ValueError(f"Number unexpectedly contained a multiplier above ten thousand: {numeric_string}")
 
-            if current_numerical_type == NumberType.ZERO and len(numeric_string) > 1:
+            if current_number.type == NumberType.ZERO and len(numeric_string) > 1:
                 raise ValueError(f"Number unexpectedly contained a zero: {numeric_string}")
 
-            if current_numerical_type == NumberType.REGULAR and previous_numerical_type == NumberType.REGULAR:
+            if current_number.type == NumberType.REGULAR and previous_numerical_type == NumberType.REGULAR:
                 raise ValueError(
                     f"Number contained two or more consecutive japanese numbers that were not multipliers {numeric_string}")
 
             if index == len(numeric_string) - 1:
-                if current_numerical_type == NumberType.REGULAR:
+                if current_number.type == NumberType.REGULAR:
                     # Save the remainder for the final value, for example 二百五十五 → 5
-                    rest_value = current_numerical_value
-                elif current_numerical_type == NumberType.UNIT:
+                    rest_value = current_number.value
+                elif current_number.type == NumberType.UNIT:
                     # Save the remainder for the final value, for example 二百五十 → 0
                     rest_value = 0
-                    final_numerical_value = final_numerical_value + current_numerical_value * multiplier_value
+                    final_numerical_value = final_numerical_value + current_number.value * multiplier_value
             else:
-                if current_numerical_type == NumberType.REGULAR:
-                    multiplier_value = current_numerical_value
-                elif current_numerical_type == NumberType.UNIT:
-                    final_numerical_value = final_numerical_value + current_numerical_value * multiplier_value
+                if current_number.type == NumberType.REGULAR:
+                    multiplier_value = current_number.value
+                elif current_number.type == NumberType.UNIT:
+                    final_numerical_value = final_numerical_value + current_number.value * multiplier_value
                     multiplier_value = 1
-            previous_numerical_type = current_numerical_type
+            previous_numerical_type = current_number.type
         final_numerical_value = final_numerical_value + rest_value
 
     if final_numerical_value < 0:
@@ -274,7 +274,7 @@ def string_number_below_ten_thousand_to_value(numeric_string: str) -> int:
     return final_numerical_value
 
 
-def parse_single_char_digit_as_number(digit: Any) -> Tuple[int, NumberType]:
+def parse_single_char_digit_as_number(digit: Any) -> CustomNumber:
     """
     Parses a single char digit to a numeric value and type
     :param digit: The character to parse (eg. 9、９、九, 百)
@@ -286,22 +286,21 @@ def parse_single_char_digit_as_number(digit: Any) -> Tuple[int, NumberType]:
         if digit.isdigit():
             input_number = int(digit)
             if input_number == 0:
-                return input_number, NumberType.ZERO
+                return CustomNumber(str(digit), input_number, NumberType.ZERO)
             else:
-                return input_number, NumberType.REGULAR
+                return CustomNumber(str(digit), input_number, NumberType.REGULAR)
         else:
             raise ValueError(
                 f"The numeric value could not be interpreted as either a kanji number or normal number: {digit}")
 
 
-def parse_single_char_kanji_as_number(kanji: Any) -> Tuple[int, NumberType]:
+def parse_single_char_kanji_as_number(kanji: Any) -> CustomNumber:
     """
     Parses a single char kanji to a numeric value and type
     :param kanji: The kanji to parse (eg. 九, 百)
     :return: A tuple with the value and NumberType
     """
     if kanji in japanese_number_dict.keys():
-        input_number = japanese_number_dict[kanji]
-        return input_number.value, input_number.number_type
+        return japanese_number_dict[kanji]
     else:
         raise ValueError(f"The numeric value could not be interpreted as a kanji number: {kanji}")

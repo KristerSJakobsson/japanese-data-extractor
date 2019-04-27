@@ -18,7 +18,7 @@ POSTAL_CODE_REGEX = regex.compile(
 )
 POSTAL_CODE_REGEX_IDENTIFIERS = {
     "postal_code_string": lambda raw_value: raw_value,
-    "postal_code_value": lambda raw_value: parse_postal_code(postal_code=raw_value)
+    "postal_code_value": parse_postal_code
 }
 
 

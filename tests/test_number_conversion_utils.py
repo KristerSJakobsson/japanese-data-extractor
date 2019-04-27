@@ -34,8 +34,8 @@ class TestNumberConvertionUtils(unittest.TestCase):
         non_digit_characters = ["a", "あ", "亜", "ア"]
 
         def parse_single_char_digit_as_number_and_return_number(digit: Any) -> int:
-            value, type = parse_single_char_digit_as_number(digit=digit)
-            return value
+            number = parse_single_char_digit_as_number(digit=digit)
+            return number.value
 
         self.verify_each_value_equals_expectation_in_dictionary(
             value_and_expectation=correct_single_digits_and_values_half_width,

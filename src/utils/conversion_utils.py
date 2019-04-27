@@ -1,7 +1,7 @@
 from collections import namedtuple
 from typing import Optional
 
-from src.extractor.constants import prefixes, special_values
+from src.extractor.constants import separators, prefixes, special_values
 from src.extractor.models.DateValue import Year, Month, Day, DateValueType
 from src.extractor.models.PostalCode import PostalCode
 from src.extractor.models.TimeDecorator import TimeDecorator
@@ -90,9 +90,27 @@ def parse_postal_code(postal_code: str) -> PostalCode:
         if char.isdigit():
             converted_code = converted_code + full_width_string_to_half_width(char)
         elif char in japanese_container_dict["0to9"]:
-            converted_code = converted_code + str(parse_single_char_kanji_as_number(char)[0])
+            converted_code = converted_code + str(parse_single_char_kanji_as_number(char).value)
 
     return PostalCode.from_string(postal_code=converted_code)
+
+
+def parse_phone_number(phone_number: str) -> str:
+    """
+    Converts a phone number to a clean representation of the same number.
+    :param phone_number: The raw data
+    :return: A string cleaned of seperators, however if it had + to begin with it will still have this character.
+    """
+    cleaned_phone_number = ""
+    for char in phone_number:
+        if char in separators["dash"] + separators["blank"]:
+            pass
+        else:
+            if char.isnumeric():
+                cleaned_phone_number += str(int(char))
+            else:
+                cleaned_phone_number += char
+    return cleaned_phone_number
 
 
 def parse_relative_year_value(relative_year: str) -> int:
